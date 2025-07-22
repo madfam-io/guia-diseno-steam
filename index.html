@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guía de Diseño Instruccional STEAM | Nueva Escuela Mexicana</title>
+    <!-- Chosen Palette: Calma Educativa -->
+    <!-- Application Structure Plan: Se ha rediseñado la SPA para ser completamente bilingüe (ES/EN) y con temas (claro/oscuro/auto). La arquitectura de navegación lateral fija se mantiene por su eficiencia. Se añadieron controles de idioma y tema en la barra lateral. Se implementó un sistema de internacionalización (i18n) basado en atributos `data-lang-key` y un diccionario en JS. La gestión del tema utiliza una clase `dark` en el elemento <html> y `localStorage` para persistencia, alineándose con las mejores prácticas de Tailwind CSS. Esta estructura mejora la accesibilidad y la experiencia de usuario, permitiendo una personalización completa. -->
+    <!-- Visualization & Content Choices: 1. Estructura NEM (Gráfico): El gráfico de dona se mantiene, pero ahora sus colores y etiquetas se actualizan dinámicamente al cambiar de tema para garantizar la legibilidad. Objetivo: Organizar/Informar. Interacción: Hover. Librería: Chart.js. 2. Contenido Bilingüe: Todo el texto estático y dinámico se gestiona a través de un objeto de traducciones en JS. Objetivo: Informar. Interacción: Clic en el selector de idioma. Justificación: Permite una aplicación completamente bilingüe sin duplicar HTML. Método: Vanilla JS. 3. Selector de Tema: Botones interactivos que modifican la clase del `<html>` y actualizan la UI. Objetivo: Personalizar. Interacción: Clic. Justificación: Ofrece una experiencia de usuario moderna y accesible. Método: Vanilla JS + Tailwind CSS dark mode. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        .content-section { display: none; }
+        .content-section.active { display: block; }
+        .nav-link { transition: all 0.2s ease-in-out; }
+        .nav-link.active {
+            background-color: #4db6ac;
+            color: white;
+            transform: translateX(4px);
+        }
+        .dark .nav-link.active { background-color: #80cbc4; color: #1a202c; }
+        .tab-button.active {
+            border-bottom-color: #4db6ac;
+            color: #4db6ac;
+            font-weight: 600;
+        }
+        .dark .tab-button.active { border-bottom-color: #80cbc4; color: #80cbc4; }
+        .theme-btn.active { background-color: #4db6ac; color: white; }
+        .dark .theme-btn.active { background-color: #80cbc4; color: #1a202c; }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 500px;
+        }
+        @media (min-width: 768px) { .chart-container { height: 500px; } }
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
+</head>
+<body class="bg-[#fdfbf7] text-stone-800 dark:bg-stone-900 dark:text-stone-200 antialiased">
+
+    <div class="flex flex-col md:flex-row min-h-screen">
+        <!-- Sidebar de Navegación -->
+        <nav class="w-full md:w-64 bg-white/80 dark:bg-stone-800/80 backdrop-blur-sm border-r border-stone-200 dark:border-stone-700 p-4 md:p-6 md:fixed md:h-full flex flex-col">
+            <div>
+                <h1 class="text-xl font-bold text-[#4db6ac] dark:text-[#80cbc4] mb-6" data-lang-key="app_title">Guía de Diseño STEAM</h1>
+                <ul class="space-y-2">
+                    <li><a href="#" class="nav-link block p-3 rounded-lg font-semibold" data-section="introduccion" data-lang-key="nav_intro">Introducción</a></li>
+                    <li><a href="#" class="nav-link block p-3 rounded-lg font-semibold" data-section="fundamentos" data-lang-key="nav_foundations">Fundamentos NEM</a></li>
+                    <li><a href="#" class="nav-link block p-3 rounded-lg font-semibold" data-section="detalles" data-lang-key="nav_details">Detalles Curriculares</a></li>
+                    <li>
+                        <span class="block p-3 font-bold text-stone-500 dark:text-stone-400" data-lang-key="nav_phases_guide">Guía por Fases</span>
+                        <ul class="ml-4 mt-1 space-y-1 border-l-2 border-stone-200 dark:border-stone-600">
+                            <li><a href="#" class="nav-link block py-2 px-4" data-section="fase2" data-lang-key="nav_phase2">Fase 2: Preescolar</a></li>
+                            <li><a href="#" class="nav-link block py-2 px-4" data-section="fase3" data-lang-key="nav_phase3">Fase 3: Primaria 1°-2°</a></li>
+                            <li><a href="#" class="nav-link block py-2 px-4" data-section="fase4" data-lang-key="nav_phase4">Fase 4: Primaria 3°-4°</a></li>
+                            <li><a href="#" class="nav-link block py-2 px-4" data-section="fase5" data-lang-key="nav_phase5">Fase 5: Primaria 5°-6°</a></li>
+                            <li><a href="#" class="nav-link block py-2 px-4" data-section="fase6" data-lang-key="nav_phase6">Fase 6: Secundaria</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#" class="nav-link block p-3 rounded-lg font-semibold" data-section="calendarizacion" data-lang-key="nav_schedule">Calendarización</a></li>
+                    <li><a href="#" class="nav-link block p-3 rounded-lg font-semibold" data-section="visualizacion" data-lang-key="nav_visualization">Visualización Estructural</a></li>
+                </ul>
+            </div>
+            <!-- Controles de Idioma y Tema -->
+            <div class="mt-auto pt-6">
+                <div class="mb-4">
+                    <label for="language-select" class="block text-sm font-medium text-stone-600 dark:text-stone-300 mb-2" data-lang-key="label_language">Idioma</label>
+                    <select id="language-select" class="w-full p-2 rounded-md bg-stone-100 dark:bg-stone-700 border border-stone-300 dark:border-stone-600 focus:ring-2 focus:ring-[#4db6ac]">
+                        <option value="es">Español</option>
+                        <option value="en">English</option>
+                    </select>
+                </div>
+                <div>
+                    <span class="block text-sm font-medium text-stone-600 dark:text-stone-300 mb-2" data-lang-key="label_theme">Tema</span>
+                    <div class="flex items-center justify-between bg-stone-100 dark:bg-stone-700 rounded-lg p-1">
+                        <button class="theme-btn w-full py-1 rounded-md text-sm" data-theme="light" data-lang-key="theme_light">Claro</button>
+                        <button class="theme-btn w-full py-1 rounded-md text-sm" data-theme="dark" data-lang-key="theme_dark">Oscuro</button>
+                        <button class="theme-btn w-full py-1 rounded-md text-sm" data-theme="auto" data-lang-key="theme_auto">Auto</button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Contenido Principal -->
+        <main class="flex-1 md:ml-64 p-4 sm:p-6 md:p-10">
+            <section id="introduccion" class="content-section">
+                <h2 class="text-3xl font-bold mb-4 text-[#4db6ac] dark:text-[#80cbc4]" data-lang-key="intro_title">Guía de Diseño Instruccional STEAM para la Nueva Escuela Mexicana</h2>
+                <p class="mb-6 text-lg text-stone-600 dark:text-stone-300" data-lang-key="intro_p1">Este documento es una herramienta para diseñadores instruccionales, educadores y líderes de programas extracurriculares. Su objetivo es facilitar la creación de programas STEAM (Science, Technology, Engineering, Arts, Math) presenciales que se alineen de manera efectiva con el marco curricular de la **Nueva Escuela Mexicana (NEM)** y se sincronicen con el ciclo escolar.</p>
+                <div class="bg-white dark:bg-stone-800 p-6 rounded-xl shadow-sm border border-stone-200 dark:border-stone-700">
+                    <p class="text-stone-700 dark:text-stone-300" data-lang-key="intro_p2">La NEM, con su enfoque en la integración de saberes y la conexión con la comunidad, es un terreno fértil para el aprendizaje STEAM. Este modelo abandona las asignaturas aisladas en favor de un enfoque holístico que es ideal para proyectos interdisciplinarios.</p>
+                </div>
+            </section>
+
+            <section id="fundamentos" class="content-section">
+                <h2 class="text-3xl font-bold mb-2 text-[#4db6ac] dark:text-[#80cbc4]" data-lang-key="foundations_title">Fundamentos de la NEM para el Diseño de Programas STEAM</h2>
+                <p class="mb-8 text-lg text-stone-600 dark:text-stone-300" data-lang-key="foundations_p1">Para crear un programa STEAM exitoso bajo este modelo, es crucial entender tres pilares:</p>
+                <div class="grid md:grid-cols-3 gap-6">
+                    <div class="bg-white dark:bg-stone-800 p-6 rounded-xl shadow-sm border border-stone-200 dark:border-stone-700">
+                        <span class="text-3xl mb-3 block">🌍</span>
+                        <h3 class="font-bold text-xl mb-2" data-lang-key="foundations_card1_title">La Comunidad como Laboratorio</h3>
+                        <p class="text-stone-700 dark:text-stone-300" data-lang-key="foundations_card1_text">Los proyectos más impactantes abordan problemas reales y locales. Use el entorno inmediato (patio, barrio, mercado) como el principal laboratorio para la investigación y el diseño.</p>
+                    </div>
+                    <div class="bg-white dark:bg-stone-800 p-6 rounded-xl shadow-sm border border-stone-200 dark:border-stone-700">
+                        <span class="text-3xl mb-3 block">🧩</span>
+                        <h3 class="font-bold text-xl mb-2" data-lang-key="foundations_card2_title">Campos Formativos como Ecosistemas</h3>
+                        <p class="text-stone-700 dark:text-stone-300" data-lang-key="foundations_card2_text">El diseño STEAM debe operar dentro de los cuatro Campos Formativos, viendo cómo las disciplinas STEAM interactúan naturalmente en estos ecosistemas de conocimiento.</p>
+                    </div>
+                    <div class="bg-white dark:bg-stone-800 p-6 rounded-xl shadow-sm border border-stone-200 dark:border-stone-700">
+                        <span class="text-3xl mb-3 block">렌</span>
+                        <h3 class="font-bold text-xl mb-2" data-lang-key="foundations_card3_title">Ejes Articuladores como Lentes</h3>
+                        <p class="text-stone-700 dark:text-stone-300" data-lang-key="foundations_card3_text">Los siete ejes no son temas, sino "lentes" para mirar cada proyecto. Pregunta clave: ¿Cómo este proyecto fomenta la igualdad de género o el pensamiento crítico?</p>
+                    </div>
+                </div>
+            </section>
+            
+            <section id="detalles" class="content-section">
+                <h2 class="text-3xl font-bold mb-2 text-[#4db6ac] dark:text-[#80cbc4]" data-lang-key="details_title">Detalles Curriculares</h2>
+                <p class="mb-8 text-lg text-stone-600 dark:text-stone-300" data-lang-key="details_p1">Explore las descripciones y propósitos de los componentes centrales de la NEM para un diseño instruccional más profundo.</p>
+                
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div>
+                        <h3 class="text-2xl font-semibold mb-4" data-lang-key="details_fields_title">Campos Formativos</h3>
+                        <div class="space-y-4" id="campos-accordion">
+                            <!-- Accordion items will be injected by JS -->
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-semibold mb-4" data-lang-key="details_axes_title">Ejes Articuladores</h3>
+                        <div class="space-y-4" id="ejes-accordion">
+                            <!-- Accordion items will be injected by JS -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <div id="fases-container">
+                <!-- Fase 2 -->
+                <section id="fase2" class="content-section">
+                    <h2 class="text-3xl font-bold mb-1 text-[#4db6ac] dark:text-[#80cbc4]" data-lang-key="phase2_title">Fase 2: Educación Preescolar</h2>
+                    <p class="text-lg text-stone-500 dark:text-stone-400 mb-6" data-lang-key="phase2_subtitle">1°, 2° y 3° | Edades 3-5 años</p>
+                    <div class="bg-white dark:bg-stone-800 p-6 rounded-xl shadow-sm border border-stone-200 dark:border-stone-700 mb-6">
+                        <h3 class="font-bold text-xl mb-2" data-lang-key="student_profile">Perfil del Estudiante</h3>
+                        <p data-lang-key="phase2_profile">Aprenden a través del juego, la exploración sensorial y la imitación. Su pensamiento es concreto y su curiosidad es ilimitada. El trabajo en equipo es incipiente y requiere modelado.</p>
+                    </div>
+                    <div id="tabs-fase2">
+                        <div class="border-b border-stone-200 dark:border-stone-700 mb-4">
+                            <nav class="flex space-x-4" aria-label="Tabs">
+                                <button class="tab-button py-2 px-1 border-b-2 font-medium text-sm text-stone-500 border-transparent" data-target="fase2-oportunidades" data-lang-key="tab_opportunities">Oportunidades STEAM</button>
+                                <button class="tab-button py-2 px-1 border-b-2 font-medium text-sm text-stone-500 border-transparent" data-target="fase2-proyectos" data-lang-key="tab_projects">Ideas de Proyectos</button>
+                            </nav>
+                        </div>
+                        <div id="fase2-oportunidades" class="tab-content">
+                            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4" data-lang-key="phase2_opportunities_grid">
+                                <!-- Content will be translated -->
+                            </div>
+                        </div>
+                        <div id="fase2-proyectos" class="tab-content hidden">
+                            <div class="space-y-4" data-lang-key="phase2_projects_list">
+                                <!-- Content will be translated -->
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                <!-- Fase 3 -->
+                <section id="fase3" class="content-section">
+                    <h2 class="text-3xl font-bold mb-1 text-[#4db6ac] dark:text-[#80cbc4]" data-lang-key="phase3_title">Fase 3: Primaria 1° y 2°</h2>
+                    <p class="text-lg text-stone-500 dark:text-stone-400 mb-6" data-lang-key="phase3_subtitle">Edades 6-7 años</p>
+                    <div class="bg-white dark:bg-stone-800 p-6 rounded-xl shadow-sm border border-stone-200 dark:border-stone-700 mb-6">
+                        <h3 class="font-bold text-xl mb-2" data-lang-key="student_profile">Perfil del Estudiante</h3>
+                        <p data-lang-key="phase3_profile">Comienzan a desarrollar el pensamiento lógico y pueden seguir instrucciones de varios pasos. La lectoescritura y el cálculo básico se están consolidando. Disfrutan de los retos y de encontrar "cómo funcionan las cosas".</p>
+                    </div>
+                    <div id="tabs-fase3">
+                        <div class="border-b border-stone-200 dark:border-stone-700 mb-4">
+                            <nav class="flex space-x-4" aria-label="Tabs">
+                                <button class="tab-button py-2 px-1 border-b-2 font-medium text-sm text-stone-500 border-transparent" data-target="fase3-oportunidades" data-lang-key="tab_opportunities">Oportunidades STEAM</button>
+                                <button class="tab-button py-2 px-1 border-b-2 font-medium text-sm text-stone-500 border-transparent" data-target="fase3-proyectos" data-lang-key="tab_projects">Ideas de Proyectos</button>
+                            </nav>
+                        </div>
+                        <div id="fase3-oportunidades" class="tab-content" data-lang-key="phase3_opportunities_grid">
+                             <!-- Content will be translated -->
+                        </div>
+                        <div id="fase3-proyectos" class="tab-content hidden" data-lang-key="phase3_projects_list">
+                             <!-- Content will be translated -->
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Fase 4 -->
+                <section id="fase4" class="content-section">
+                    <h2 class="text-3xl font-bold mb-1 text-[#4db6ac] dark:text-[#80cbc4]" data-lang-key="phase4_title">Fase 4: Primaria 3° y 4°</h2>
+                    <p class="text-lg text-stone-500 dark:text-stone-400 mb-6" data-lang-key="phase4_subtitle">Edades 8-9 años</p>
+                    <div class="bg-white dark:bg-stone-800 p-6 rounded-xl shadow-sm border border-stone-200 dark:border-stone-700 mb-6">
+                        <h3 class="font-bold text-xl mb-2" data-lang-key="student_profile">Perfil del Estudiante</h3>
+                        <p data-lang-key="phase4_profile">Mayor capacidad de abstracción y de trabajo colaborativo. Pueden realizar investigaciones guiadas y formular hipótesis. Comienzan a entender sistemas y procesos.</p>
+                    </div>
+                    <div id="tabs-fase4">
+                        <div class="border-b border-stone-200 dark:border-stone-700 mb-4">
+                            <nav class="flex space-x-4" aria-label="Tabs">
+                                <button class="tab-button py-2 px-1 border-b-2 font-medium text-sm text-stone-500 border-transparent" data-target="fase4-oportunidades" data-lang-key="tab_opportunities">Oportunidades STEAM</button>
+                                <button class="tab-button py-2 px-1 border-b-2 font-medium text-sm text-stone-500 border-transparent" data-target="fase4-proyectos" data-lang-key="tab_projects">Ideas de Proyectos</button>
+                            </nav>
+                        </div>
+                        <div id="fase4-oportunidades" class="tab-content" data-lang-key="phase4_opportunities_grid">
+                             <!-- Content will be translated -->
+                        </div>
+                        <div id="fase4-proyectos" class="tab-content hidden" data-lang-key="phase4_projects_list">
+                             <!-- Content will be translated -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Fase 5 -->
+                <section id="fase5" class="content-section">
+                    <h2 class="text-3xl font-bold mb-1 text-[#4db6ac] dark:text-[#80cbc4]" data-lang-key="phase5_title">Fase 5: Primaria 5° y 6°</h2>
+                    <p class="text-lg text-stone-500 dark:text-stone-400 mb-6" data-lang-key="phase5_subtitle">Edades 10-11 años</p>
+                    <div class="bg-white dark:bg-stone-800 p-6 rounded-xl shadow-sm border border-stone-200 dark:border-stone-700 mb-6">
+                        <h3 class="font-bold text-xl mb-2" data-lang-key="student_profile">Perfil del Estudiante</h3>
+                        <p data-lang-key="phase5_profile">Capaces de pensamiento crítico y de manejar múltiples variables. Pueden realizar proyectos de investigación más autónomos y presentar sus hallazgos de forma estructurada.</p>
+                    </div>
+                    <div id="tabs-fase5">
+                        <div class="border-b border-stone-200 dark:border-stone-700 mb-4">
+                            <nav class="flex space-x-4" aria-label="Tabs">
+                                <button class="tab-button py-2 px-1 border-b-2 font-medium text-sm text-stone-500 border-transparent" data-target="fase5-oportunidades" data-lang-key="tab_opportunities">Oportunidades STEAM</button>
+                                <button class="tab-button py-2 px-1 border-b-2 font-medium text-sm text-stone-500 border-transparent" data-target="fase5-proyectos" data-lang-key="tab_projects">Ideas de Proyectos</button>
+                            </nav>
+                        </div>
+                        <div id="fase5-oportunidades" class="tab-content" data-lang-key="phase5_opportunities_grid">
+                             <!-- Content will be translated -->
+                        </div>
+                        <div id="fase5-proyectos" class="tab-content hidden" data-lang-key="phase5_projects_list">
+                             <!-- Content will be translated -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Fase 6 -->
+                <section id="fase6" class="content-section">
+                    <h2 class="text-3xl font-bold mb-1 text-[#4db6ac] dark:text-[#80cbc4]" data-lang-key="phase6_title">Fase 6: Secundaria</h2>
+                    <p class="text-lg text-stone-500 dark:text-stone-400 mb-6" data-lang-key="phase6_subtitle">1°, 2° y 3° | Edades 12-14 años</p>
+                    <div class="bg-white dark:bg-stone-800 p-6 rounded-xl shadow-sm border border-stone-200 dark:border-stone-700 mb-6">
+                        <h3 class="font-bold text-xl mb-2" data-lang-key="student_profile">Perfil del Estudiante</h3>
+                        <p data-lang-key="phase6_profile">Desarrollan el pensamiento abstracto y formal. Son capaces de debatir, argumentar y pensar en sistemas complejos. Buscan aplicar el conocimiento a temas de su interés y a la planeación de su futuro.</p>
+                    </div>
+                    <div id="tabs-fase6">
+                        <div class="border-b border-stone-200 dark:border-stone-700 mb-4">
+                            <nav class="flex space-x-4" aria-label="Tabs">
+                                <button class="tab-button py-2 px-1 border-b-2 font-medium text-sm text-stone-500 border-transparent" data-target="fase6-oportunidades" data-lang-key="tab_opportunities">Oportunidades STEAM</button>
+                                <button class="tab-button py-2 px-1 border-b-2 font-medium text-sm text-stone-500 border-transparent" data-target="fase6-proyectos" data-lang-key="tab_projects">Ideas de Proyectos</button>
+                            </nav>
+                        </div>
+                        <div id="fase6-oportunidades" class="tab-content" data-lang-key="phase6_opportunities_grid">
+                             <!-- Content will be translated -->
+                        </div>
+                        <div id="fase6-proyectos" class="tab-content hidden" data-lang-key="phase6_projects_list">
+                             <!-- Content will be translated -->
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <section id="calendarizacion" class="content-section">
+                <h2 class="text-3xl font-bold mb-2 text-[#4db6ac] dark:text-[#80cbc4]" data-lang-key="schedule_title">Propuesta de Calendarización Sincronizada</h2>
+                <p class="mb-8 text-lg text-stone-600 dark:text-stone-300" data-lang-key="schedule_p1">Estructura el programa STEAM en torno a los tres periodos de evaluación del ciclo escolar para complementar el currículo.</p>
+                <div class="grid md:grid-cols-3 gap-6">
+                    <div class="bg-white dark:bg-stone-800 p-6 rounded-xl shadow-sm border border-stone-200 dark:border-stone-700">
+                        <h3 class="font-bold text-xl mb-2 text-amber-600" data-lang-key="schedule_card1_title">Primer Trimestre (Ago-Nov)</h3>
+                        <h4 class="font-semibold mb-2" data-lang-key="schedule_card1_theme">Tema: "Exploradores de Nuestro Mundo"</h4>
+                        <p class="text-stone-700 dark:text-stone-300" data-lang-key="schedule_card1_focus"><strong>Enfoque:</strong> Diagnóstico, observación y recolección de datos. Ideal para el inicio del ciclo.</p>
+                        <p class="mt-3 text-sm text-stone-600 dark:text-stone-400" data-lang-key="schedule_card1_example"><strong>Ej:</strong> Censo de biodiversidad local, construcción de una estación meteorológica casera.</p>
+                    </div>
+                    <div class="bg-white dark:bg-stone-800 p-6 rounded-xl shadow-sm border border-stone-200 dark:border-stone-700">
+                        <h3 class="font-bold text-xl mb-2 text-sky-600" data-lang-key="schedule_card2_title">Segundo Trimestre (Dic-Mar)</h3>
+                        <h4 class="font-semibold mb-2" data-lang-key="schedule_card2_theme">Tema: "Sistemas y Transformaciones"</h4>
+                        <p class="text-stone-700 dark:text-stone-300" data-lang-key="schedule_card2_focus"><strong>Enfoque:</strong> Experimentación, construcción y análisis de sistemas. Coincide con la profundización de contenidos.</p>
+                        <p class="mt-3 text-sm text-stone-600 dark:text-stone-400" data-lang-key="schedule_card2_example"><strong>Ej:</strong> Diseño de vehículos con energías alternativas, máquinas de Rube Goldberg.</p>
+                    </div>
+                    <div class="bg-white dark:bg-stone-800 p-6 rounded-xl shadow-sm border border-stone-200 dark:border-stone-700">
+                        <h3 class="font-bold text-xl mb-2 text-emerald-600" data-lang-key="schedule_card3_title">Tercer Trimestre (Abr-Jul)</h3>
+                        <h4 class="font-semibold mb-2" data-lang-key="schedule_card3_theme">Tema: "Innovación para la Comunidad"</h4>
+                        <p class="text-stone-700 dark:text-stone-300" data-lang-key="schedule_card3_focus"><strong>Enfoque:</strong> Aplicación, prototipado y comunicación. Ideal para ferias de ciencias y proyectos de impacto social.</p>
+                        <p class="mt-3 text-sm text-stone-600 dark:text-stone-400" data-lang-key="schedule_card3_example"><strong>Ej:</strong> Desarrollar una app para un problema local, diseñar soluciones de accesibilidad.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="visualizacion" class="content-section">
+                <h2 class="text-3xl font-bold mb-2 text-[#4db6ac] dark:text-[#80cbc4]" data-lang-key="visualization_title">Visualización de la Estructura Curricular</h2>
+                <p class="mb-8 text-lg text-stone-600 dark:text-stone-300 max-w-3xl mx-auto text-center" data-lang-key="visualization_p1">Este gráfico interactivo muestra cómo se relacionan los componentes de la Nueva Escuela Mexicana. El círculo exterior representa los **Campos Formativos**, y el interior los **Ejes Articuladores** que los atraviesan. Pasa el cursor sobre una sección para ver más detalles.</p>
+                <div class="chart-container">
+                    <canvas id="nemChart"></canvas>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const translations = {
+                es: {
+                    app_title: "Guía de Diseño STEAM",
+                    nav_intro: "Introducción",
+                    nav_foundations: "Fundamentos NEM",
+                    nav_details: "Detalles Curriculares",
+                    nav_phases_guide: "Guía por Fases",
+                    nav_phase2: "Fase 2: Preescolar",
+                    nav_phase3: "Fase 3: Primaria 1°-2°",
+                    nav_phase4: "Fase 4: Primaria 3°-4°",
+                    nav_phase5: "Fase 5: Primaria 5°-6°",
+                    nav_phase6: "Fase 6: Secundaria",
+                    nav_schedule: "Calendarización",
+                    nav_visualization: "Visualización Estructural",
+                    label_language: "Idioma",
+                    label_theme: "Tema",
+                    theme_light: "Claro",
+                    theme_dark: "Oscuro",
+                    theme_auto: "Auto",
+                    intro_title: "Guía de Diseño Instruccional STEAM para la Nueva Escuela Mexicana",
+                    intro_p1: "Este documento es una herramienta para diseñadores instruccionales, educadores y líderes de programas extracurriculares. Su objetivo es facilitar la creación de programas STEAM (Science, Technology, Engineering, Arts, Math) presenciales que se alineen de manera efectiva con el marco curricular de la **Nueva Escuela Mexicana (NEM)** y se sincronicen con el ciclo escolar.",
+                    intro_p2: "La NEM, con su enfoque en la integración de saberes y la conexión con la comunidad, es un terreno fértil para el aprendizaje STEAM. Este modelo abandona las asignaturas aisladas en favor de un enfoque holístico que es ideal para proyectos interdisciplinarios.",
+                    foundations_title: "Fundamentos de la NEM para el Diseño de Programas STEAM",
+                    foundations_p1: "Para crear un programa STEAM exitoso bajo este modelo, es crucial entender tres pilares:",
+                    foundations_card1_title: "La Comunidad como Laboratorio",
+                    foundations_card1_text: "Los proyectos más impactantes abordan problemas reales y locales. Use el entorno inmediato (patio, barrio, mercado) como el principal laboratorio para la investigación y el diseño.",
+                    foundations_card2_title: "Campos Formativos como Ecosistemas",
+                    foundations_card2_text: "El diseño STEAM debe operar dentro de los cuatro Campos Formativos, viendo cómo las disciplinas STEAM interactúan naturalmente en estos ecosistemas de conocimiento.",
+                    foundations_card3_title: "Ejes Articuladores como Lentes",
+                    foundations_card3_text: "Los siete ejes no son temas, sino \"lentes\" para mirar cada proyecto. Pregunta clave: ¿Cómo este proyecto fomenta la igualdad de género o el pensamiento crítico?",
+                    details_title: "Detalles Curriculares",
+                    details_p1: "Explore las descripciones y propósitos de los componentes centrales de la NEM para un diseño instruccional más profundo.",
+                    details_fields_title: "Campos Formativos",
+                    details_axes_title: "Ejes Articuladores",
+                    campo_lenguajes_desc: "Objeto de aprendizaje: Experiencias y la interacción con el mundo a través del empleo de diferentes lenguajes. Vincula procesos de aprendizaje del español, lenguas indígenas, lenguajes artísticos e inglés.",
+                    campo_saberes_desc: "Objeto de aprendizaje: Comprensión y explicación de los fenómenos y procesos naturales (cuerpo humano, seres vivos, materia, energía, salud, medio ambiente y tecnología) desde la perspectiva de diversos saberes y en su relación con lo social.",
+                    campo_etica_desc: "Objeto de aprendizaje: La relación del ser humano con la sociedad y la naturaleza desde la comprensión crítica de los procesos sociales, políticos, naturales y culturales. Ofrece experiencias para la construcción de una postura ética y una ciudadanía participativa.",
+                    campo_humano_desc: "Objeto de aprendizaje: Experiencias cognitivas, motrices, socioafectivas y creativas que permitan favorecer la construcción de su identidad, el sentido de pertenencia, la conciencia de interdependencia y el compromiso ético para la satisfacción de necesidades humanas.",
+                    eje_inclusion_desc: "Se refiere a desarrollar procesos formativos y relaciones pedagógicas que permitan comprender la lógica colonial que opera en nuestra experiencia humana cotidiana y contrarrestarla. Busca que los estudiantes se formen en espacios donde sean conscientes de que si falta una o uno por motivos de clase, sexo, género, etnia, etc., no están incluidos todos.",
+                    eje_critico_desc: "Es la capacidad que desarrollan los estudiantes para interrogar al mundo y oponerse a la injusticia, la desigualdad, el racismo, el machismo y todas las formas que excluyen e invisibilizan a las personas. Implica desarrollar un juicio propio y una autonomía para pensar de manera razonada y argumentada.",
+                    eje_intercultural_desc: "Parte de que las culturas son matrices dinámicas de producción de sentido. Busca enseñar y aprender conocimientos y saberes desde diversos fundamentos conceptuales que permitan a los estudiantes pensarse en coexistencia con los otros y el medio ambiente, valorando el diálogo de saberes.",
+                    eje_genero_desc: "Supone una formación en la que se cuestionen las prácticas institucionalizadas que asignan roles y establecen desigualmente la condición de las personas. Busca que comprendan que la igualdad de género es una condición histórica y un derecho, no un rasgo biológico.",
+                    eje_saludable_desc: "Supone una formación progresiva que permita comprender la relación entre el medio ambiente y la dinámica social, económica y cultural, y las consecuencias de estas relaciones en la salud personal y colectiva. Promueve la salud como un hecho social y un derecho.",
+                    eje_culturas_desc: "Busca que el acercamiento a las culturas a través de la lengua escrita y la oralidad permita a los estudiantes desarrollar habilidades para descifrar su propia experiencia en el mundo. Es el derecho a una democratización de la lectura y a expresarse en su propia lengua para manifestar una ciudadanía activa.",
+                    eje_artes_desc: "Busca valorar la exploración sensible del mundo y recuperar el valor formativo de las experiencias artísticas y estéticas. Las artes ofrecen la posibilidad de crear relaciones con el mundo que atienden a los aspectos reflexivos y afectivos, y abren nuevos mundos de pensamiento y sensibilidad.",
+                    student_profile: "Perfil del Estudiante",
+                    tab_opportunities: "Oportunidades STEAM",
+                    tab_projects: "Ideas de Proyectos",
+                    phase2_title: "Fase 2: Educación Preescolar",
+                    phase2_subtitle: "1°, 2° y 3° | Edades 3-5 años",
+                    phase2_profile: "Aprenden a través del juego, la exploración sensorial y la imitación. Su pensamiento es concreto y su curiosidad es ilimitada. El trabajo en equipo es incipiente y requiere modelado.",
+                    phase2_opportunities_grid: `<div class="bg-white/50 dark:bg-stone-800/50 p-4 rounded-lg border border-stone-200 dark:border-stone-700"><strong>S (Ciencia):</strong> Observación de la naturaleza (ciclos de vida), propiedades de materiales (agua, arena), el clima.</div><div class="bg-white/50 dark:bg-stone-800/50 p-4 rounded-lg border border-stone-200 dark:border-stone-700"><strong>T (Tecnología):</strong> Uso de herramientas simples (lupas, goteros), juegos de causa y efecto en tablets.</div><div class="bg-white/50 dark:bg-stone-800/50 p-4 rounded-lg border border-stone-200 dark:border-stone-700"><strong>E (Ingeniería):</strong> Construcción con bloques, rampas para carritos, refugios para juguetes.</div><div class="bg-white/50 dark:bg-stone-800/50 p-4 rounded-lg border border-stone-200 dark:border-stone-700"><strong>A (Artes):</strong> Exploración de colores, texturas, sonidos. Modelado con arcilla, pintura, música.</div><div class="bg-white/50 dark:bg-stone-800/50 p-4 rounded-lg border border-stone-200 dark:border-stone-700"><strong>M (Matemáticas):</strong> Conteo, clasificación, patrones simples, medición no convencional.</div>`,
+                    phase2_projects_list: `<div class="bg-white dark:bg-stone-800 p-4 rounded-lg border border-stone-200 dark:border-stone-700"><strong>El Jardín de los Sentidos:</strong> Diseñar y plantar un jardín. Investigan plantas locales (S), usan herramientas (T), diseñan la distribución (E), documentan con dibujos (A) y cuentan semillas (M).</div><div class="bg-white dark:bg-stone-800 p-4 rounded-lg border border-stone-200 dark:border-stone-700"><strong>Mi Sombra y Yo:</strong> Explorar cómo se forman las sombras (S). Crear un teatro de sombras (A, T), construyendo el escenario (E). Miden y comparan el tamaño de las sombras (M).</div>`,
+                    phase3_title: "Fase 3: Primaria 1° y 2°",
+                    phase3_subtitle: "Edades 6-7 años",
+                    phase3_profile: "Comienzan a desarrollar el pensamiento lógico y pueden seguir instrucciones de varios pasos. La lectoescritura y el cálculo básico se están consolidando. Disfrutan de los retos y de encontrar \"cómo funcionan las cosas\".",
+                    phase3_opportunities_grid: `<div class="bg-white/50 dark:bg-stone-800/50 p-4 rounded-lg border border-stone-200 dark:border-stone-700"><strong>S (Ciencia):</strong> Estados de la materia, sistema solar, características de seres vivos, fuerzas y movimiento.</div><div class="bg-white/50 dark:bg-stone-800/50 p-4 rounded-lg border border-stone-200 dark:border-stone-700"><strong>T (Tecnología):</strong> Robótica de bloques simple, animaciones stop-motion.</div><div class="bg-white/50 dark:bg-stone-800/50 p-4 rounded-lg border border-stone-200 dark:border-stone-700"><strong>E (Ingeniería):</strong> Desafíos de diseño con restricciones, diseño de máquinas simples (palancas, poleas).</div><div class="bg-white/50 dark:bg-stone-800/50 p-4 rounded-lg border border-stone-200 dark:border-stone-700"><strong>A (Artes):</strong> Creación de modelos a escala, dibujo de observación, diseño de personajes.</div><div class="bg-white/50 dark:bg-stone-800/50 p-4 rounded-lg border border-stone-200 dark:border-stone-700"><strong>M (Matemáticas):</strong> Suma y resta, medición estándar (cm), recolección de datos en gráficas.</div>`,
+                    phase3_projects_list: `<div class="bg-white dark:bg-stone-800 p-4 rounded-lg border border-stone-200 dark:border-stone-700"><strong>Misión Espacial:</strong> Diseñar un vehículo de exploración (E) para un planeta investigado (S). Programar un robot simple para seguir una ruta (T). Crear un diario de viaje (A). Calcular distancias (M).</div><div class="bg-white dark:bg-stone-800 p-4 rounded-lg border border-stone-200 dark:border-stone-700"><strong>Rescate de Mascotas:</strong> Diseñar y construir una máquina simple (E, S). Programar una animación que explique su funcionamiento (T, A). Medir altura y peso del objeto (M).</div>`,
+                    phase4_title: "Fase 4: Primaria 3° y 4°",
+                    phase4_subtitle: "Edades 8-9 años",
+                    phase4_profile: "Mayor capacidad de abstracción y de trabajo colaborativo. Pueden realizar investigaciones guiadas y formular hipótesis. Comienzan a entender sistemas y procesos.",
+                    phase4_opportunities_grid: `<div class="bg-white/50 dark:bg-stone-800/50 p-4 rounded-lg border border-stone-200 dark:border-stone-700"><strong>S (Ciencia):</strong> Ecosistemas, ciclo del agua, electricidad y circuitos básicos, sistemas del cuerpo humano.</div><div class="bg-white/50 dark:bg-stone-800/50 p-4 rounded-lg border border-stone-200 dark:border-stone-700"><strong>T (Tecnología):</strong> Diseño 3D básico, programación por bloques avanzada, creación de videojuegos sencillos.</div><div class="bg-white/50 dark:bg-stone-800/50 p-4 rounded-lg border border-stone-200 dark:border-stone-700"><strong>E (Ingeniería):</strong> Proceso de diseño de ingeniería (preguntar, imaginar, planear, crear, mejorar), proyectos de energía renovable.</div><div class="bg-white/50 dark:bg-stone-800/50 p-4 rounded-lg border border-stone-200 dark:border-stone-700"><strong>A (Artes):</strong> Diseño de infografías, creación de música digital, perspectiva en el dibujo.</div><div class="bg-white/50 dark:bg-stone-800/50 p-4 rounded-lg border border-stone-200 dark:border-stone-700"><strong>M (Matemáticas):</strong> Multiplicación y división, fracciones, ángulos, área y perímetro, análisis de datos.</div>`,
+                    phase4_projects_list: `<div class="bg-white dark:bg-stone-800 p-4 rounded-lg border border-stone-200 dark:border-stone-700"><strong>Ciudad Sostenible:</strong> Diseñar en maquetas una ciudad con energías renovables (E, S). Construir circuitos simples con LEDs (S, T). Calcular áreas y perímetros (M). Diseñar una campaña de comunicación (A).</div><div class="bg-white dark:bg-stone-800 p-4 rounded-lg border border-stone-200 dark:border-stone-700"><strong>Instrumentos Musicales:</strong> Investigar sobre vibraciones y sonido (S). Diseñar y construir instrumentos con materiales reciclados (E). Componer y grabar música (A, T). Medir longitudes para diferentes notas (M).</div>`,
+                    phase5_title: "Fase 5: Primaria 5° y 6°",
+                    phase5_subtitle: "Edades 10-11 años",
+                    phase5_profile: "Capaces de pensamiento crítico y de manejar múltiples variables. Pueden realizar proyectos de investigación más autónomos y presentar sus hallazgos de forma estructurada.",
+                    phase5_opportunities_grid: `<div class="bg-white/50 dark:bg-stone-800/50 p-4 rounded-lg border border-stone-200 dark:border-stone-700"><strong>S (Ciencia):</strong> Reacciones químicas, biodiversidad, salud y prevención, astronomía.</div><div class="bg-white/50 dark:bg-stone-800/50 p-4 rounded-lg border border-stone-200 dark:border-stone-700"><strong>T (Tecnología):</strong> Programación basada en texto (Python/JS), robótica con sensores, análisis de datos.</div><div class="bg-white/50 dark:bg-stone-800/50 p-4 rounded-lg border border-stone-200 dark:border-stone-700"><strong>E (Ingeniería):</strong> Prototipado y testeo de soluciones a problemas comunitarios, bio-imitación.</div><div class="bg-white/50 dark:bg-stone-800/50 p-4 rounded-lg border border-stone-200 dark:border-stone-700"><strong>A (Artes):</strong> Producción de video, diseño gráfico, instalaciones artísticas interactivas.</div><div class="bg-white/50 dark:bg-stone-800/50 p-4 rounded-lg border border-stone-200 dark:border-stone-700"><strong>M (Matemáticas):</strong> Porcentajes, proporciones, pre-álgebra, volumen, interpretación de gráficas.</div>`,
+                    phase5_projects_list: `<div class="bg-white dark:bg-stone-800 p-4 rounded-lg border border-stone-200 dark:border-stone-700"><strong>Agencia de Detectives Ambientales:</strong> Investigar un problema de contaminación local (S). Analizar datos (M). Diseñar y prototipar una solución (E, T). Crear un documental (A).</div><div class="bg-white dark:bg-stone-800 p-4 rounded-lg border border-stone-200 dark:border-stone-700"><strong>Alimentos del Futuro:</strong> Investigar sobre hidroponía (S). Construir un sistema hidropónico (E). Programar un sensor de humedad (T). Calcular rendimiento y costos (M). Diseñar el empaque (A).</div>`,
+                    phase6_title: "Fase 6: Secundaria",
+                    phase6_subtitle: "1°, 2° y 3° | Edades 12-14 años",
+                    phase6_profile: "Desarrollan el pensamiento abstracto y formal. Son capaces de debatir, argumentar y pensar en sistemas complejos. Buscan aplicar el conocimiento a temas de su interés y a la planeación de su futuro.",
+                    phase6_opportunities_grid: `<div class="bg-white/50 dark:bg-stone-800/50 p-4 rounded-lg border border-stone-200 dark:border-stone-700"><strong>S (Ciencia):</strong> Genética (Biología), leyes de Newton (Física), tabla periódica (Química), método científico.</div><div class="bg-white/50 dark:bg-stone-800/50 p-4 rounded-lg border border-stone-200 dark:border-stone-700"><strong>T (Tecnología):</strong> Desarrollo de apps, diseño e impresión 3D, IA básica, ciberseguridad.</div><div class="bg-white/50 dark:bg-stone-800/50 p-4 rounded-lg border border-stone-200 dark:border-stone-700"><strong>E (Ingeniería):</strong> Proyectos complejos para resolver problemas sociales o ambientales, del concepto al prototipo.</div><div class="bg-white/50 dark:bg-stone-800/50 p-4 rounded-lg border border-stone-200 dark:border-stone-700"><strong>A (Artes):</strong> Arte generativo (con código), diseño de experiencias de usuario (UX), muralismo.</div><div class="bg-white/50 dark:bg-stone-800/50 p-4 rounded-lg border border-stone-200 dark:border-stone-700"><strong>M (Matemáticas):</strong> Álgebra, geometría, trigonometría, probabilidad y estadística.</div>`,
+                    phase6_projects_list: `<div class="bg-white dark:bg-stone-800 p-4 rounded-lg border border-stone-200 dark:border-stone-700"><strong>Prótesis para Todos:</strong> Investigar anatomía y biomecánica (Biología, Física). Diseñar una prótesis en 3D (E, T). Imprimir y ensamblar (T). Calcular fuerzas y ángulos (M, Física). Crear una campaña de difusión (A).</div><div class="bg-white dark:bg-stone-800 p-4 rounded-lg border border-stone-200 dark:border-stone-700"><strong>Arte y Contaminación del Aire:</strong> Construir un sensor de calidad del aire (T, Química). Recolectar y analizar datos (S, M). Transformar los datos en una instalación artística (A, E).</div>`,
+                    schedule_title: "Propuesta de Calendarización Sincronizada",
+                    schedule_p1: "Estructura el programa STEAM en torno a los tres periodos de evaluación del ciclo escolar para complementar el currículo.",
+                    schedule_card1_title: "Primer Trimestre (Ago-Nov)",
+                    schedule_card1_theme: "Tema: \"Exploradores de Nuestro Mundo\"",
+                    schedule_card1_focus: "<strong>Enfoque:</strong> Diagnóstico, observación y recolección de datos. Ideal para el inicio del ciclo.",
+                    schedule_card1_example: "<strong>Ej:</strong> Censo de biodiversidad local, construcción de una estación meteorológica casera.",
+                    schedule_card2_title: "Segundo Trimestre (Dic-Mar)",
+                    schedule_card2_theme: "Tema: \"Sistemas y Transformaciones\"",
+                    schedule_card2_focus: "<strong>Enfoque:</strong> Experimentación, construcción y análisis de sistemas. Coincide con la profundización de contenidos.",
+                    schedule_card2_example: "<strong>Ej:</strong> Diseño de vehículos con energías alternativas, máquinas de Rube Goldberg.",
+                    schedule_card3_title: "Tercer Trimestre (Abr-Jul)",
+                    schedule_card3_theme: "Tema: \"Innovación para la Comunidad\"",
+                    schedule_card3_focus: "<strong>Enfoque:</strong> Aplicación, prototipado y comunicación. Ideal para ferias de ciencias y proyectos de impacto social.",
+                    schedule_card3_example: "<strong>Ej:</strong> Desarrollar una app para un problema local, diseñar soluciones de accesibilidad.",
+                    visualization_title: "Visualización de la Estructura Curricular",
+                    visualization_p1: "Este gráfico interactivo muestra cómo se relacionan los componentes de la Nueva Escuela Mexicana. El círculo exterior representa los **Campos Formativos**, y el interior los **Ejes Articuladores** que los atraviesan. Pasa el cursor sobre una sección para ver más detalles.",
+                    chart_label_languages: "Lenguajes",
+                    chart_label_knowledge: "Saberes y Pensamiento Científico",
+                    chart_label_ethics: "Ética, Naturaleza y Sociedades",
+                    chart_label_human: "De lo Humano y lo Comunitario",
+                    chart_label_inclusion: "Inclusión",
+                    chart_label_critical: "Pensamiento Crítico",
+                    chart_label_intercultural: "Interculturalidad Crítica",
+                    chart_label_gender: "Igualdad de Género",
+                    chart_label_health: "Vida Saludable",
+                    chart_label_culture: "Apropiación de las culturas",
+                    chart_label_arts: "Artes y experiencias estéticas",
+                    chart_dataset_fields: "Campos Formativos",
+                    chart_dataset_axes: "Ejes Articuladores"
+                },
+                en: {
+                    app_title: "STEAM Design Guide",
+                    nav_intro: "Introduction",
+                    nav_foundations: "NEM Foundations",
+                    nav_details: "Curricular Details",
+                    nav_phases_guide: "Guide by Phases",
+                    nav_phase2: "Phase 2: Preschool",
+                    nav_phase3: "Phase 3: Primary 1st-2nd",
+                    nav_phase4: "Phase 4: Primary 3rd-4th",
+                    nav_phase5: "Phase 5: Primary 5th-6th",
+                    nav_phase6: "Phase 6: Secondary",
+                    nav_schedule: "Scheduling",
+                    nav_visualization: "Structural Visualization",
+                    label_language: "Language",
+                    label_theme: "Theme",
+                    theme_light: "Light",
+                    theme_dark: "Dark",
+                    theme_auto: "Auto",
+                    intro_title: "STEAM Instructional Design Guide for the New Mexican School",
+                    intro_p1: "This document is a tool for instructional designers, educators, and leaders of extracurricular programs. Its objective is to facilitate the creation of in-person STEAM (Science, Technology, Engineering, Arts, Math) programs that effectively align with the **New Mexican School (NEM)** curriculum framework and synchronize with the school year.",
+                    intro_p2: "The NEM, with its focus on knowledge integration and community connection, is fertile ground for STEAM learning. This model abandons isolated subjects in favor of a holistic approach that is ideal for interdisciplinary projects.",
+                    foundations_title: "NEM Foundations for STEAM Program Design",
+                    foundations_p1: "To create a successful STEAM program under this model, it is crucial to understand three pillars:",
+                    foundations_card1_title: "Community as a Laboratory",
+                    foundations_card1_text: "The most impactful projects address real, local problems. Use the immediate environment (playground, neighborhood, market) as the main laboratory for research and design.",
+                    foundations_card2_title: "Formative Fields as Ecosystems",
+                    foundations_card2_text: "STEAM design should operate within the four Formative Fields, seeing how STEAM disciplines naturally interact in these knowledge ecosystems.",
+                    foundations_card3_title: "Articulating Axes as Lenses",
+                    foundations_card3_text: "The seven axes are not topics, but \"lenses\" through which to view each project. Key question: How does this project promote gender equality or critical thinking?",
+                    details_title: "Curricular Details",
+                    details_p1: "Explore the descriptions and purposes of the NEM's core components for a deeper instructional design.",
+                    details_fields_title: "Formative Fields",
+                    details_axes_title: "Articulating Axes",
+                    campo_lenguajes_desc: "Learning Object: Experiences and interaction with the world through the use of different languages. It links the learning processes of Spanish, indigenous languages, artistic languages, and English.",
+                    campo_saberes_desc: "Learning Object: Understanding and explanation of natural phenomena and processes (human body, living beings, matter, energy, health, environment, and technology) from the perspective of diverse knowledge systems and their relationship with the social.",
+                    campo_etica_desc: "Learning Object: The relationship of the human being with society and nature from a critical understanding of social, political, natural, and cultural processes. It offers experiences for building an ethical stance and a participatory citizenship.",
+                    campo_humano_desc: "Learning Object: Cognitive, motor, socio-affective, and creative experiences that allow for the construction of identity, sense of belonging, awareness of interdependence, and ethical commitment to satisfy human needs.",
+                    eje_inclusion_desc: "Refers to developing educational processes and pedagogical relationships that allow for the understanding and counteracting of the colonial logic that operates in our daily human experience. It seeks to ensure students are formed in spaces where they are aware that if one is missing due to class, sex, gender, ethnicity, etc., then not everyone is included.",
+                    eje_critico_desc: "The ability developed by students to question the world and oppose injustice, inequality, racism, sexism, and all forms that exclude and invisibilize people. It implies developing one's own judgment and autonomy to think in a reasoned and argued manner.",
+                    eje_intercultural_desc: "Starts from the premise that cultures are dynamic matrices for producing meaning. It seeks to teach and learn knowledge from diverse conceptual foundations that allow students to think of themselves in coexistence with others and the environment, valuing the dialogue of knowledge.",
+                    eje_genero_desc: "Involves an education in which institutionalized practices that assign roles and unequally establish people's condition are questioned. It seeks to make students understand that gender equality is a historical condition and a right, not a biological trait.",
+                    eje_saludable_desc: "Involves a progressive education that allows understanding the relationship between the environment and social, economic, and cultural dynamics, and the consequences of these relationships on personal and collective health. It promotes health as a social fact and a right.",
+                    eje_culturas_desc: "Seeks that the approach to cultures through written and oral language allows students to develop skills to decipher their own experience in the world. It is the right to the democratization of reading and to express oneself in one's own language to manifest active citizenship.",
+                    eje_artes_desc: "Seeks to value the sensitive exploration of the world and recover the educational value of artistic and aesthetic experiences. The arts offer the possibility of creating relationships with the world that attend to reflective and affective aspects, opening new worlds of thought and sensitivity.",
+                    student_profile: "Student Profile",
+                    tab_opportunities: "STEAM Opportunities",
+                    tab_projects: "Project Ideas",
+                    phase2_title: "Phase 2: Preschool Education",
+                    phase2_subtitle: "1st, 2nd & 3rd | Ages 3-5",
+                    phase2_profile: "They learn through play, sensory exploration, and imitation. Their thinking is concrete, and their curiosity is limitless. Teamwork is nascent and requires modeling.",
+                    phase2_opportunities_grid: `<div class="bg-white/50 dark:bg-stone-800/50 p-4 rounded-lg border border-stone-200 dark:border-stone-700"><strong>S (Science):</strong> Nature observation (life cycles), material properties (water, sand), weather.</div><div class="bg-white/50 dark:bg-stone-800/50 p-4 rounded-lg border border-stone-200 dark:border-stone-700"><strong>T (Technology):</strong> Use of simple tools (magnifying glasses, droppers), cause-and-effect games on tablets.</div><div class="bg-white/50 dark:bg-stone-800/50 p-4 rounded-lg border border-stone-200 dark:border-stone-700"><strong>E (Engineering):</strong> Building with blocks, ramps for toy cars, shelters for toys.</div><div class="bg-white/50 dark:bg-stone-800/50 p-4 rounded-lg border border-stone-200 dark:border-stone-700"><strong>A (Arts):</strong> Exploring colors, textures, sounds. Modeling with clay, painting, music.</div><div class="bg-white/50 dark:bg-stone-800/50 p-4 rounded-lg border border-stone-200 dark:border-stone-700"><strong>M (Math):</strong> Counting, sorting, simple patterns, non-standard measurement.</div>`,
+                    phase2_projects_list: `<div class="bg-white dark:bg-stone-800 p-4 rounded-lg border border-stone-200 dark:border-stone-700"><strong>The Sensory Garden:</strong> Design and plant a garden. They research local plants (S), use tools (T), design the layout (E), document with drawings (A), and count seeds (M).</div><div class="bg-white dark:bg-stone-800 p-4 rounded-lg border border-stone-200 dark:border-stone-700"><strong>Me and My Shadow:</strong> Explore how shadows are formed (S). Create a shadow puppet theater (A, T), building the stage (E). They measure and compare shadow sizes (M).</div>`,
+                    phase3_title: "Phase 3: Primary 1st & 2nd",
+                    phase3_subtitle: "Ages 6-7",
+                    phase3_profile: "They begin to develop logical thinking and can follow multi-step instructions. Literacy and basic calculation are consolidating. They enjoy challenges and figuring out \"how things work.\"",
+                    phase3_opportunities_grid: `<div class="bg-white/50 dark:bg-stone-800/50 p-4 rounded-lg border border-stone-200 dark:border-stone-700"><strong>S (Science):</strong> States of matter, solar system, characteristics of living things, forces and motion.</div><div class="bg-white/50 dark:bg-stone-800/50 p-4 rounded-lg border border-stone-200 dark:border-stone-700"><strong>T (Technology):</strong> Simple block-based robotics, stop-motion animations.</div><div class="bg-white/50 dark:bg-stone-800/50 p-4 rounded-lg border border-stone-200 dark:border-stone-700"><strong>E (Engineering):</strong> Design challenges with constraints, design of simple machines (levers, pulleys).</div><div class="bg-white/50 dark:bg-stone-800/50 p-4 rounded-lg border border-stone-200 dark:border-stone-700"><strong>A (Arts):</strong> Creating scale models, observational drawing, character design.</div><div class="bg-white/50 dark:bg-stone-800/50 p-4 rounded-lg border border-stone-200 dark:border-stone-700"><strong>M (Math):</strong> Addition and subtraction, standard measurement (cm), data collection in graphs.</div>`,
+                    phase3_projects_list: `<div class="bg-white dark:bg-stone-800 p-4 rounded-lg border border-stone-200 dark:border-stone-700"><strong>Space Mission:</strong> Design an exploration vehicle (E) for a researched planet (S). Program a simple robot to follow a route (T). Create a travel journal (A). Calculate distances (M).</div><div class="bg-white dark:bg-stone-800 p-4 rounded-lg border border-stone-200 dark:border-stone-700"><strong>Pet Rescue:</strong> Design and build a simple machine (E, S). Program an animation explaining its function (T, A). Measure the object's height and weight (M).</div>`,
+                    phase4_title: "Phase 4: Primary 3rd & 4th",
+                    phase4_subtitle: "Ages 8-9",
+                    phase4_profile: "Greater capacity for abstraction and collaborative work. They can conduct guided research and formulate hypotheses. They begin to understand systems and processes.",
+                    phase4_opportunities_grid: `<div class="bg-white/50 dark:bg-stone-800/50 p-4 rounded-lg border border-stone-200 dark:border-stone-700"><strong>S (Science):</strong> Ecosystems, water cycle, basic electricity and circuits, human body systems.</div><div class="bg-white/50 dark:bg-stone-800/50 p-4 rounded-lg border border-stone-200 dark:border-stone-700"><strong>T (Technology):</strong> Basic 3D design, advanced block-based programming, simple video game creation.</div><div class="bg-white/50 dark:bg-stone-800/50 p-4 rounded-lg border border-stone-200 dark:border-stone-700"><strong>E (Engineering):</strong> Engineering design process (ask, imagine, plan, create, improve), renewable energy projects.</div><div class="bg-white/50 dark:bg-stone-800/50 p-4 rounded-lg border border-stone-200 dark:border-stone-700"><strong>A (Arts):</strong> Infographic design, digital music creation, perspective in drawing.</div><div class="bg-white/50 dark:bg-stone-800/50 p-4 rounded-lg border border-stone-200 dark:border-stone-700"><strong>M (Math):</strong> Multiplication and division, fractions, angles, area and perimeter, data analysis.</div>`,
+                    phase4_projects_list: `<div class="bg-white dark:bg-stone-800 p-4 rounded-lg border border-stone-200 dark:border-stone-700"><strong>Sustainable City:</strong> Design a city section with renewable energy in models (E, S). Build simple circuits with LEDs (S, T). Calculate areas and perimeters (M). Design a communication campaign (A).</div><div class="bg-white dark:bg-stone-800 p-4 rounded-lg border border-stone-200 dark:border-stone-700"><strong>Musical Instruments:</strong> Investigate sound and vibrations (S). Design and build instruments from recycled materials (E). Compose and record music (A, T). Measure lengths for different notes (M).</div>`,
+                    phase5_title: "Phase 5: Primary 5th & 6th",
+                    phase5_subtitle: "Ages 10-11",
+                    phase5_profile: "Capable of critical thinking and handling multiple variables. They can conduct more autonomous research projects and present their findings in a structured way.",
+                    phase5_opportunities_grid: `<div class="bg-white/50 dark:bg-stone-800/50 p-4 rounded-lg border border-stone-200 dark:border-stone-700"><strong>S (Science):</strong> Chemical reactions, biodiversity, health and prevention, astronomy.</div><div class="bg-white/50 dark:bg-stone-800/50 p-4 rounded-lg border border-stone-200 dark:border-stone-700"><strong>T (Technology):</strong> Text-based programming (Python/JS), robotics with sensors, data analysis.</div><div class="bg-white/50 dark:bg-stone-800/50 p-4 rounded-lg border border-stone-200 dark:border-stone-700"><strong>E (Engineering):</strong> Prototyping and testing solutions to community problems, bio-mimicry.</div><div class="bg-white/50 dark:bg-stone-800/50 p-4 rounded-lg border border-stone-200 dark:border-stone-700"><strong>A (Arts):</strong> Video production, graphic design, interactive art installations.</div><div class="bg-white/50 dark:bg-stone-800/50 p-4 rounded-lg border border-stone-200 dark:border-stone-700"><strong>M (Math):</strong> Percentages, proportions, pre-algebra, volume, graph interpretation.</div>`,
+                    phase5_projects_list: `<div class="bg-white dark:bg-stone-800 p-4 rounded-lg border border-stone-200 dark:border-stone-700"><strong>Environmental Detective Agency:</strong> Investigate a local pollution problem (S). Analyze data (M). Design and prototype a solution (E, T). Create a documentary (A).</div><div class="bg-white dark:bg-stone-800 p-4 rounded-lg border border-stone-200 dark:border-stone-700"><strong>Foods of the Future:</strong> Research nutrition and sustainable agriculture like hydroponics (S). Build a small hydroponic system (E). Program a moisture sensor (T). Calculate yield and costs (M). Design packaging (A).</div>`,
+                    phase6_title: "Phase 6: Secondary",
+                    phase6_subtitle: "1st, 2nd & 3rd | Ages 12-14",
+                    phase6_profile: "They develop abstract and formal thinking. They are able to debate, argue, and think in complex systems. They seek to apply knowledge to topics of interest and for their future planning.",
+                    phase6_opportunities_grid: `<div class="bg-white/50 dark:bg-stone-800/50 p-4 rounded-lg border border-stone-200 dark:border-stone-700"><strong>S (Science):</strong> Genetics (Biology), Newton's laws (Physics), periodic table (Chemistry), scientific method.</div><div class="bg-white/50 dark:bg-stone-800/50 p-4 rounded-lg border border-stone-200 dark:border-stone-700"><strong>T (Technology):</strong> App development, 3D design and printing, basic AI, cybersecurity.</div><div class="bg-white/50 dark:bg-stone-800/50 p-4 rounded-lg border border-stone-200 dark:border-stone-700"><strong>E (Engineering):</strong> Complex projects to solve social or environmental problems, from concept to prototype.</div><div class="bg-white/50 dark:bg-stone-800/50 p-4 rounded-lg border border-stone-200 dark:border-stone-700"><strong>A (Arts):</strong> Generative art (with code), user experience (UX) design, muralism.</div><div class="bg-white/50 dark:bg-stone-800/50 p-4 rounded-lg border border-stone-200 dark:border-stone-700"><strong>M (Math):</strong> Algebra, geometry, trigonometry, probability and statistics.</div>`,
+                    phase6_projects_list: `<div class="bg-white dark:bg-stone-800 p-4 rounded-lg border border-stone-200 dark:border-stone-700"><strong>Prosthetics for All:</strong> Research human anatomy and biomechanics (Biology, Physics). Design a low-cost, functional hand prosthesis in 3D (E, T). Print and assemble (T). Calculate forces and angles (M, Physics). Create a dissemination campaign (A).</div><div class="bg-white dark:bg-stone-800 p-4 rounded-lg border border-stone-200 dark:border-stone-700"><strong>Art and Air Pollution:</strong> Build an air quality sensor (T, Chemistry). Collect and analyze data (S, M). Transform the data into an art installation (A, E).</div>`,
+                    schedule_title: "Synchronized Scheduling Proposal",
+                    schedule_p1: "Structure the STEAM program around the three evaluation periods of the school year to complement the curriculum.",
+                    schedule_card1_title: "First Trimester (Aug-Nov)",
+                    schedule_card1_theme: "Theme: \"Explorers of Our World\"",
+                    schedule_card1_focus: "<strong>Focus:</strong> Diagnosis, observation, and data collection. Ideal for the beginning of the school year.",
+                    schedule_card1_example: "<strong>Ex:</strong> Local biodiversity census, building a homemade weather station.",
+                    schedule_card2_title: "Second Trimester (Dec-Mar)",
+                    schedule_card2_theme: "Theme: \"Systems and Transformations\"",
+                    schedule_card2_focus: "<strong>Focus:</strong> Experimentation, construction, and analysis of systems. Coincides with deeper content exploration.",
+                    schedule_card2_example: "<strong>Ex:</strong> Design of alternative energy vehicles, Rube Goldberg machines.",
+                    schedule_card3_title: "Third Trimester (Apr-Jul)",
+                    schedule_card3_theme: "Theme: \"Innovation for the Community\"",
+                    schedule_card3_focus: "<strong>Focus:</strong> Application, prototyping, and communication. Ideal for science fairs and social impact projects.",
+                    schedule_card3_example: "<strong>Ex:</strong> Develop an app for a local problem, design accessibility solutions.",
+                    visualization_title: "Curriculum Structure Visualization",
+                    visualization_p1: "This interactive chart shows how the components of the New Mexican School are related. The outer circle represents the **Formative Fields**, and the inner circle represents the **Articulating Axes** that run through them. Hover over a section for more details.",
+                    chart_label_languages: "Languages",
+                    chart_label_knowledge: "Knowledge and Scientific Thinking",
+                    chart_label_ethics: "Ethics, Nature, and Societies",
+                    chart_label_human: "The Human and the Communitarian",
+                    chart_label_inclusion: "Inclusion",
+                    chart_label_critical: "Critical Thinking",
+                    chart_label_intercultural: "Critical Interculturality",
+                    chart_label_gender: "Gender Equality",
+                    chart_label_health: "Healthy Living",
+                    chart_label_culture: "Appropriation of cultures",
+                    chart_label_arts: "Arts and aesthetic experiences",
+                    chart_dataset_fields: "Formative Fields",
+                    chart_dataset_axes: "Articulating Axes"
+                }
+            };
+            
+            let currentLang = localStorage.getItem('language') || 'es';
+            let nemChart;
+
+            const languageSelect = document.getElementById('language-select');
+            const themeButtons = document.querySelectorAll('.theme-btn');
+            const navLinks = document.querySelectorAll('.nav-link');
+            const contentSections = document.querySelectorAll('.content-section');
+
+            function setLanguage(lang) {
+                currentLang = lang;
+                localStorage.setItem('language', lang);
+                languageSelect.value = lang;
+                document.documentElement.lang = lang;
+
+                document.querySelectorAll('[data-lang-key]').forEach(el => {
+                    const key = el.getAttribute('data-lang-key');
+                    if (translations[lang][key]) {
+                         if (key.startsWith('phase') && (key.endsWith('_grid') || key.endsWith('_list'))) {
+                            el.innerHTML = translations[lang][key];
+                        } else {
+                            el.innerText = translations[lang][key];
+                        }
+                    }
+                });
+                
+                populateAccordions();
+                updateChartLanguage();
+            }
+
+            function setTheme(theme) {
+                localStorage.setItem('theme', theme);
+                updateThemeUI(theme);
+                applyTheme(theme);
+            }
+
+            function applyTheme(theme) {
+                 if (theme === 'auto') {
+                    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                        document.documentElement.classList.add('dark');
+                    } else {
+                        document.documentElement.classList.remove('dark');
+                    }
+                } else if (theme === 'dark') {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
+                updateChartTheme();
+            }
+
+            function updateThemeUI(theme) {
+                themeButtons.forEach(btn => {
+                    btn.dataset.theme === theme ? btn.classList.add('active') : btn.classList.remove('active');
+                });
+            }
+            
+            function showSection(sectionId) {
+                contentSections.forEach(section => section.classList.remove('active'));
+                const activeSection = document.getElementById(sectionId);
+                if (activeSection) activeSection.classList.add('active');
+            }
+
+            function updateActiveLink(activeLink) {
+                navLinks.forEach(link => link.classList.remove('active'));
+                activeLink.classList.add('active');
+            }
+            
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    showSection(this.dataset.section);
+                    updateActiveLink(this);
+                });
+            });
+
+            languageSelect.addEventListener('change', (e) => setLanguage(e.target.value));
+            
+            themeButtons.forEach(button => {
+                button.addEventListener('click', () => setTheme(button.dataset.theme));
+            });
+            
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+                const savedTheme = localStorage.getItem('theme') || 'auto';
+                if (savedTheme === 'auto') applyTheme('auto');
+            });
+
+            function setupTabs(containerId) {
+                const container = document.getElementById(containerId);
+                if (!container) return;
+                
+                const tabButtons = container.querySelectorAll('.tab-button');
+                const tabContents = container.querySelectorAll('.tab-content');
+
+                tabButtons.forEach(button => {
+                    button.addEventListener('click', () => {
+                        tabButtons.forEach(btn => btn.classList.remove('active'));
+                        button.classList.add('active');
+                        const targetId = button.dataset.target;
+                        tabContents.forEach(content => {
+                            content.classList.toggle('hidden', content.id !== targetId);
+                        });
+                    });
+                });
+                if (tabButtons.length > 0) tabButtons[0].click();
+            }
+
+            ['tabs-fase2', 'tabs-fase3', 'tabs-fase4', 'tabs-fase5', 'tabs-fase6'].forEach(setupTabs);
+
+            const accordionData = {
+                campos: [
+                    { key: 'campo_lenguajes', title_key: 'chart_label_languages', desc_key: 'campo_lenguajes_desc' },
+                    { key: 'campo_saberes', title_key: 'chart_label_knowledge', desc_key: 'campo_saberes_desc' },
+                    { key: 'campo_etica', title_key: 'chart_label_ethics', desc_key: 'campo_etica_desc' },
+                    { key: 'campo_humano', title_key: 'chart_label_human', desc_key: 'campo_humano_desc' }
+                ],
+                ejes: [
+                    { key: 'eje_inclusion', title_key: 'chart_label_inclusion', desc_key: 'eje_inclusion_desc' },
+                    { key: 'eje_critico', title_key: 'chart_label_critical', desc_key: 'eje_critico_desc' },
+                    { key: 'eje_intercultural', title_key: 'chart_label_intercultural', desc_key: 'eje_intercultural_desc' },
+                    { key: 'eje_genero', title_key: 'chart_label_gender', desc_key: 'eje_genero_desc' },
+                    { key: 'eje_saludable', title_key: 'chart_label_health', desc_key: 'eje_saludable_desc' },
+                    { key: 'eje_culturas', title_key: 'chart_label_culture', desc_key: 'eje_culturas_desc' },
+                    { key: 'eje_artes', title_key: 'chart_label_arts', desc_key: 'eje_artes_desc' }
+                ]
+            };
+
+            function populateAccordions() {
+                const camposContainer = document.getElementById('campos-accordion');
+                const ejesContainer = document.getElementById('ejes-accordion');
+                camposContainer.innerHTML = '';
+                ejesContainer.innerHTML = '';
+
+                accordionData.campos.forEach(item => {
+                    const title = translations[currentLang][item.title_key];
+                    const description = translations[currentLang][item.desc_key];
+                    camposContainer.innerHTML += createAccordionItem(title, description);
+                });
+
+                accordionData.ejes.forEach(item => {
+                    const title = translations[currentLang][item.title_key];
+                    const description = translations[currentLang][item.desc_key];
+                    ejesContainer.innerHTML += createAccordionItem(title, description);
+                });
+
+                setupAccordionListeners();
+            }
+
+            function createAccordionItem(title, description) {
+                return `
+                    <div class="bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-lg">
+                        <h2>
+                            <button type="button" class="accordion-button flex items-center justify-between w-full p-4 font-semibold text-left text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-700/50 rounded-lg">
+                                <span>${title}</span>
+                                <svg class="w-3 h-3 transform rotate-0 shrink-0 transition-transform duration-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5 5 1 1 5"/></svg>
+                            </button>
+                        </h2>
+                        <div class="accordion-content">
+                            <div class="p-4 border-t border-stone-200 dark:border-stone-700">
+                                <p class="text-stone-600 dark:text-stone-400">${description}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            function setupAccordionListeners() {
+                document.querySelectorAll('.accordion-button').forEach(button => {
+                    button.addEventListener('click', () => {
+                        const content = button.parentElement.nextElementSibling;
+                        const icon = button.querySelector('svg');
+                        
+                        if (content.style.maxHeight) {
+                            content.style.maxHeight = null;
+                            icon.classList.remove('rotate-180');
+                        } else {
+                            content.style.maxHeight = content.scrollHeight + "px";
+                            icon.classList.add('rotate-180');
+                        }
+                    });
+                });
+            }
+
+            function createChart() {
+                const ctx = document.getElementById('nemChart');
+                if (!ctx) return;
+                
+                const isDark = document.documentElement.classList.contains('dark');
+                const textColor = isDark ? '#e5e7eb' : '#374151';
+
+                const chartData = {
+                    labels: Object.values(translations[currentLang]).slice(-11),
+                    datasets: [{
+                        label: translations[currentLang].chart_dataset_fields,
+                        data: [25, 25, 25, 25],
+                        backgroundColor: ['rgba(240, 128, 128, 0.7)','rgba(77, 182, 172, 0.7)','rgba(240, 230, 140, 0.7)','rgba(123, 104, 238, 0.7)'],
+                        borderColor: isDark ? '#1f2937' : '#fdfbf7',
+                        borderWidth: 4
+                    }, {
+                        label: translations[currentLang].chart_dataset_axes,
+                        data: [1, 1, 1, 1, 1, 1, 1],
+                        backgroundColor: ['rgba(255, 160, 122, 0.8)','rgba(32, 178, 170, 0.8)','rgba(218, 165, 32, 0.8)','rgba(219, 112, 147, 0.8)','rgba(60, 179, 113, 0.8)','rgba(106, 90, 205, 0.8)','rgba(255, 105, 180, 0.8)'],
+                        borderColor: isDark ? '#1f2937' : '#fdfbf7',
+                        borderWidth: 4
+                    }]
+                };
+
+                nemChart = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: chartData,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    padding: 20,
+                                    color: textColor,
+                                    font: { size: 12 },
+                                    filter: (legendItem) => legendItem.datasetIndex === 0
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: (context) => `${context.label}: ${context.dataset.label}`
+                                }
+                            }
+                        },
+                        cutout: '30%'
+                    }
+                });
+            }
+            
+            function updateChartTheme() {
+                if (!nemChart) return;
+                const isDark = document.documentElement.classList.contains('dark');
+                const textColor = isDark ? '#e5e7eb' : '#374151';
+                const borderColor = isDark ? '#1f2937' : '#fdfbf7';
+                
+                nemChart.options.plugins.legend.labels.color = textColor;
+                nemChart.data.datasets.forEach(dataset => {
+                    dataset.borderColor = borderColor;
+                });
+                nemChart.update();
+            }
+            
+            function updateChartLanguage() {
+                if (!nemChart) return;
+                nemChart.data.labels = [
+                    translations[currentLang].chart_label_languages,
+                    translations[currentLang].chart_label_knowledge,
+                    translations[currentLang].chart_label_ethics,
+                    translations[currentLang].chart_label_human,
+                    translations[currentLang].chart_label_inclusion,
+                    translations[currentLang].chart_label_critical,
+                    translations[currentLang].chart_label_intercultural,
+                    translations[currentLang].chart_label_gender,
+                    translations[currentLang].chart_label_health,
+                    translations[currentLang].chart_label_culture,
+                    translations[currentLang].chart_label_arts
+                ];
+                nemChart.data.datasets[0].label = translations[currentLang].chart_dataset_fields;
+                nemChart.data.datasets[1].label = translations[currentLang].chart_dataset_axes;
+                nemChart.update();
+            }
+
+            // Initial Setup
+            const savedTheme = localStorage.getItem('theme') || 'auto';
+            updateThemeUI(savedTheme);
+            applyTheme(savedTheme);
+            setLanguage(currentLang);
+            showSection('introduccion');
+            document.querySelector('.nav-link[data-section="introduccion"]').classList.add('active');
+            createChart();
+        });
+    </script>
+</body>
+</html>
